@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <style>
+        /* Basic styles for centering and button */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        video {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Scanner</h1>
+    <button id="startScan">Scan QR Code</button>
+    <div id="qr-reader" style="width: 500px; display: none;"></div>
+    <p id="result"></p>
+
+    <script src="/html5-qrcode-master/minified/html5-qrcode.min.js"></script>
+
+    <script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+    <script>
+        document.getElementById('startScan').addEventListener('click', function() {
+            let qrCodeScanner = new Html5Qrcode("qr-reader");
+
+            qrCodeScanner.start(
+                { facingMode: "environment" }, // Default camera, change to 'user' for front camera
+                {
+                    fps: 10,    // frames per second
+                    qrbox: 450  // scanning box size
+                },
+                qrCodeMessage => {
+                    // Process QR Code message
+                    console.log(`QR Code detected: ${qrCodeMessage}`);
+                    
+                    // Stop the scanner once a QR code is detected
+                    qrCodeScanner.stop().then(() => {
+                        // Send the scanned QR code data to the backend
+                        fetch('/check_qr', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ qr_data: qrCodeMessage })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.matched) {
+                                document.getElementById('result').innerText = 'Matched! Name: ' + data.name;
+                            } else {
+                                document.getElementById('result').innerText = 'Not matched';
+                            }
+                        });
+                    }).catch(err => {
+                        console.error(`Error stopping the scanner: ${err}`);
+                    });
+                },
+                errorMessage => {
+                    // Handle error
+                    console.error(`QR Code scan error: ${errorMessage}`);
+                })
+                .catch(err => {
+                    console.error(`Error starting the scanner: ${err}`);
+                });
+
+            // Display the QR code reader
+            document.getElementById('qr-reader').style.display = 'block';
+        });
+    </script>
+</body>
+</html>
