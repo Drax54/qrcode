@@ -1,7 +1,7 @@
 import qrcode
 
 # Data to be encoded in the QR code
-data = "Kavita"
+data = "Dulari"
 
 # Create an instance of QRCode
 qr = qrcode.QRCode(
