@@ -1,7 +1,7 @@
 import qrcode
 
 # Data to be encoded in the QR code
-data = "Charles"
+data = "Kavita"
 
 # Create an instance of QRCode
 qr = qrcode.QRCode(
@@ -19,6 +19,6 @@ qr.make(fit=True)
 img = qr.make_image(fill='black', back_color='white')
 
 # Save the image to a file
-img.save('sample_qr_code.png')
+img.save('code.png')
 
 print("QR Code generated and saved as 'sample_qr_code.png'.")

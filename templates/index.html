@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
             height: 100vh;
             flex-direction: column;
         }
+
         video {
             width: 100%;
             max-width: 500px;
@@ -20,6 +22,7 @@
         }
     </style>
 </head>
+
 <body>
     <h1>QR Code Scanner</h1>
     <button id="startScan">Scan QR Code</button>
@@ -30,7 +33,7 @@
 
     <script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
     <script>
-        document.getElementById('startScan').addEventListener('click', function() {
+        document.getElementById('startScan').addEventListener('click', function () {
             let qrCodeScanner = new Html5Qrcode("qr-reader");
 
             qrCodeScanner.start(
@@ -42,7 +45,7 @@
                 qrCodeMessage => {
                     // Process QR Code message
                     console.log(`QR Code detected: ${qrCodeMessage}`);
-                    
+
                     // Stop the scanner once a QR code is detected
                     qrCodeScanner.stop().then(() => {
                         // Send the scanned QR code data to the backend
@@ -53,14 +56,14 @@
                             },
                             body: JSON.stringify({ qr_data: qrCodeMessage })
                         })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.matched) {
-                                document.getElementById('result').innerText = 'Matched! Name: ' + data.name;
-                            } else {
-                                document.getElementById('result').innerText = 'Not matched';
-                            }
-                        });
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.matched) {
+                                    document.getElementById('result').innerText = 'Matched! Name: ' + data.name + ', Age: ' + data.age;
+                                } else {
+                                    document.getElementById('result').innerText = 'Not matched';
+                                }
+                            });
                     }).catch(err => {
                         console.error(`Error stopping the scanner: ${err}`);
                     });
@@ -74,6 +77,115 @@
                 });
 
             // Display the QR code reader
+            document.getElementById('qr-reader').style.display = 'block';
+        });
+
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            background-color: #f4f4f9;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #qr-reader {
+            width: 100%;
+            max-width: 500px;
+            display: none; /* initially hidden */
+        }
+        .result {
+            background-color: #f0f0f0;
+            border-left: 5px solid #4CAF50;
+            padding: 10px;
+            display: none; /* Hide initially */
+            text-align: left;
+        }
+        .result p {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        .highlight {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Scanner</h1>
+        <button id="startScan">Scan QR Code</button>
+        <div id="qr-reader"></div>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script src="/html5-qrcode-master/minified/html5-qrcode.min.js"></script>
+    <script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+
+    <script>
+        document.getElementById('startScan').addEventListener('click', function () {
+            const qrCodeScanner = new Html5Qrcode("qr-reader");
+            qrCodeScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                qrCodeMessage => {
+                    console.log(`QR Code detected: ${qrCodeMessage}`);
+                    qrCodeScanner.stop().then(() => {
+                        fetch('/check_qr', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ qr_data: qrCodeMessage })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            let resultDiv = document.getElementById('result');
+                            if (data.matched) {
+                                resultDiv.innerHTML = `<p>Name: <span class="highlight">${data.name}</span></p>
+                                                       <p>Age: <span class="highlight">${data.age}</span></p>`;
+                            } else {
+                                resultDiv.textContent = 'Not matched';
+                            }
+                            resultDiv.style.display = 'block'; // Show results
+                        });
+                    }).catch(err => console.error(`Error stopping the scanner: ${err}`));
+                },
+                errorMessage => {
+                    console.error(`QR Code scan error: ${errorMessage}`);
+                }
+            ).catch(err => {
+                console.error(`Error starting the scanner: ${err}`);
+            });
             document.getElementById('qr-reader').style.display = 'block';
         });
     </script>
